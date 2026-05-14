@@ -34,6 +34,8 @@ async function seed() {
       audience VARCHAR(200),
       purpose VARCHAR(200),
       tags TEXT,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      design_feedback JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -195,15 +197,17 @@ async function seed() {
 
     CREATE TABLE collaborators (
       id SERIAL PRIMARY KEY,
-      presentation_id INTEGER,
+      presentation_id INTEGER REFERENCES presentations(id) ON DELETE CASCADE,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
       user_email VARCHAR(255),
-      role VARCHAR(50) DEFAULT 'viewer',
-      permissions VARCHAR(100) DEFAULT 'view',
+      role VARCHAR(50) DEFAULT 'editor',
+      permissions VARCHAR(100) DEFAULT 'edit',
       status VARCHAR(50) DEFAULT 'active',
-      invited_by VARCHAR(255),
+      invited_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
       joined_at TIMESTAMP DEFAULT NOW(),
       created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(presentation_id, user_id)
     );
 
     CREATE TABLE presentation_analytics (
