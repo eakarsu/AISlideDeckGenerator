@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import CrudPage from './components/CrudPage';
 import AIChatPage from './pages/AIChatPage';
 import NewAIToolsPage from './pages/NewAIToolsPage';
+import CustomViewsPage from './pages/CustomViewsPage';
 
 // === Batch 07 Gaps & Frontend Mounts ===
 import CfAgenticDeckGeneration from './pages/CfAgenticDeckGeneration';
@@ -225,6 +226,9 @@ function Sidebar({ collapsed, setCollapsed }) {
         <NavLink to="/ai-chat" className={({isActive})=>`nav-item ${isActive?'active':''}`}>
           <span className="nav-icon"><FiMessageSquare/></span><span className="nav-label">AI Assistant</span>
         </NavLink>
+        <NavLink to="/custom-views" className={({isActive})=>`nav-item ${isActive?'active':''}`}>
+          <span className="nav-icon"><FiBarChart2/></span><span className="nav-label">Deck Views</span>
+        </NavLink>
       </ul>
       <div className="sidebar-section-title">Content</div>
       <ul className="nav-items">
@@ -269,6 +273,7 @@ function AppLayout() {
           <Route path="/dashboard" element={<Dashboard pages={pages}/>} />
           <Route path="/ai-chat" element={<AIChatPage/>} />
           <Route path="/ai-tools" element={<NewAIToolsPage/>} />
+          <Route path="/custom-views" element={<CustomViewsPage/>} />
           {pages.map(p => (
             <Route key={p.path} path={p.path} element={
               <CrudPage title={p.label} apiPath={p.api} columns={p.columns} fields={p.fields} />

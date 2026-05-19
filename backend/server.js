@@ -30,6 +30,23 @@ app.use('/api/collaborators', require('./routes/collaborators'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/settings', require('./routes/settings'));
 
+// AI feature mount: agentic-deck
+app.use('/api/ai/agentic-deck', require('./routes/ai-agentic-deck'));
+// === Batch 07 Gaps & Frontend Mounts ===
+app.use('/api/gap-no-templaterecommend-for-topic', require('./routes/gap-no-templaterecommend-for-topic'));
+app.use('/api/gap-no-speakernotesexpand-from-outline', require('./routes/gap-no-speakernotesexpand-from-outline'));
+app.use('/api/gap-no-designconsistencycheck-fonts-colors', require('./routes/gap-no-designconsistencycheck-fonts-colors'));
+app.use('/api/gap-no-contentqualityfeedback-readability', require('./routes/gap-no-contentqualityfeedback-readability'));
+app.use('/api/gap-no-audienceaware-adaptation-ai', require('./routes/gap-no-audienceaware-adaptation-ai'));
+app.use('/api/gap-no-realtime-multiuser-collaboration-crdtpres', require('./routes/gap-no-realtime-multiuser-collaboration-crdtpres'));
+app.use('/api/gap-no-version-history-undo-store', require('./routes/gap-no-version-history-undo-store'));
+app.use('/api/gap-no-presenter-mode-timer-notes-view', require('./routes/gap-no-presenter-mode-timer-notes-view'));
+app.use('/api/gap-limited-export-depth-pdfvideo-pipeline-shall', require('./routes/gap-limited-export-depth-pdfvideo-pipeline-shall'));
+app.use('/api/gap-no-presentation-analytics-viewer-engagement', require('./routes/gap-no-presentation-analytics-viewer-engagement'));
+app.use('/api/gap-no-template-marketplace', require('./routes/gap-no-template-marketplace'));
+app.use('/api/gap-no-notifications', require('./routes/gap-no-notifications'));
+// === End Batch 07 ===
+
 // Dashboard stats
 app.use('/api/dashboard', require('./middleware/auth'), async (req, res) => {
   try {
@@ -58,6 +75,18 @@ app.use('/api/dashboard', require('./middleware/auth'), async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Health endpoint
+app.get('/api/health', (req, res) => res.json({ ok: true, service: 'AISlideDeckGenerator', time: new Date().toISOString() }));
+
+// Custom Views (4 features: 2 VIZ + 2 NON-VIZ) - mounted BEFORE 404/error handlers
+app.use('/api/custom-views', require('./routes/customViews'));
+
+// 404 handler (after all routes, before error handler)
+app.use('/api', (req, res, next) => {
+  if (res.headersSent) return next();
+  res.status(404).json({ error: 'Not Found', path: req.originalUrl });
+});
+
 // Error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.stack);
@@ -66,20 +95,3 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.BACKEND_PORT || 3001;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-
-// AI feature mount: agentic-deck
-app.use('/api/ai/agentic-deck', require('./routes/ai-agentic-deck'));
-// === Batch 07 Gaps & Frontend Mounts ===
-app.use('/api/gap-no-templaterecommend-for-topic', require('./routes/gap-no-templaterecommend-for-topic'));
-app.use('/api/gap-no-speakernotesexpand-from-outline', require('./routes/gap-no-speakernotesexpand-from-outline'));
-app.use('/api/gap-no-designconsistencycheck-fonts-colors', require('./routes/gap-no-designconsistencycheck-fonts-colors'));
-app.use('/api/gap-no-contentqualityfeedback-readability', require('./routes/gap-no-contentqualityfeedback-readability'));
-app.use('/api/gap-no-audienceaware-adaptation-ai', require('./routes/gap-no-audienceaware-adaptation-ai'));
-app.use('/api/gap-no-realtime-multiuser-collaboration-crdtpres', require('./routes/gap-no-realtime-multiuser-collaboration-crdtpres'));
-app.use('/api/gap-no-version-history-undo-store', require('./routes/gap-no-version-history-undo-store'));
-app.use('/api/gap-no-presenter-mode-timer-notes-view', require('./routes/gap-no-presenter-mode-timer-notes-view'));
-app.use('/api/gap-limited-export-depth-pdfvideo-pipeline-shall', require('./routes/gap-limited-export-depth-pdfvideo-pipeline-shall'));
-app.use('/api/gap-no-presentation-analytics-viewer-engagement', require('./routes/gap-no-presentation-analytics-viewer-engagement'));
-app.use('/api/gap-no-template-marketplace', require('./routes/gap-no-template-marketplace'));
-app.use('/api/gap-no-notifications', require('./routes/gap-no-notifications'));
-// === End Batch 07 ===
