@@ -7,6 +7,30 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CrudPage from './components/CrudPage';
 import AIChatPage from './pages/AIChatPage';
+import NewAIToolsPage from './pages/NewAIToolsPage';
+import CustomViewsPage from './pages/CustomViewsPage';
+
+// === Batch 07 Gaps & Frontend Mounts ===
+import CfAgenticDeckGeneration from './pages/CfAgenticDeckGeneration';
+import CfRealtimeCollaboration from './pages/CfRealtimeCollaboration';
+import CfAudienceAnalysisAdaptation from './pages/CfAudienceAnalysisAdaptation';
+import CfDataVisualizationRecommender from './pages/CfDataVisualizationRecommender';
+import CfPresentationDeliveryCoaching from './pages/CfPresentationDeliveryCoaching';
+import CfTemplateRemixCustomization from './pages/CfTemplateRemixCustomization';
+import GapNoTemplaterecommendForTopic from './pages/GapNoTemplaterecommendForTopic';
+import GapNoSpeakernotesexpandFromOutline from './pages/GapNoSpeakernotesexpandFromOutline';
+import GapNoDesignconsistencycheckFontsColors from './pages/GapNoDesignconsistencycheckFontsColors';
+import GapNoContentqualityfeedbackReadability from './pages/GapNoContentqualityfeedbackReadability';
+import GapNoAudienceawareAdaptationAi from './pages/GapNoAudienceawareAdaptationAi';
+import GapNoRealtimeMultiuserCollaborationCrdtpres from './pages/GapNoRealtimeMultiuserCollaborationCrdtpres';
+import GapNoVersionHistoryUndoStore from './pages/GapNoVersionHistoryUndoStore';
+import GapNoPresenterModeTimerNotesView from './pages/GapNoPresenterModeTimerNotesView';
+import GapLimitedExportDepthPdfvideoPipelineShall from './pages/GapLimitedExportDepthPdfvideoPipelineShall';
+import GapNoPresentationAnalyticsViewerEngagement from './pages/GapNoPresentationAnalyticsViewerEngagement';
+import GapNoTemplateMarketplace from './pages/GapNoTemplateMarketplace';
+import GapNoNotifications from './pages/GapNoNotifications';
+// === End Batch 07 ===
+
 
 const pages = [
   { path:'/presentations', label:'Presentations', icon:<FiLayers/>, api:'presentations',
@@ -202,6 +226,9 @@ function Sidebar({ collapsed, setCollapsed }) {
         <NavLink to="/ai-chat" className={({isActive})=>`nav-item ${isActive?'active':''}`}>
           <span className="nav-icon"><FiMessageSquare/></span><span className="nav-label">AI Assistant</span>
         </NavLink>
+        <NavLink to="/custom-views" className={({isActive})=>`nav-item ${isActive?'active':''}`}>
+          <span className="nav-icon"><FiBarChart2/></span><span className="nav-label">Deck Views</span>
+        </NavLink>
       </ul>
       <div className="sidebar-section-title">Content</div>
       <ul className="nav-items">
@@ -245,12 +272,34 @@ function AppLayout() {
         <Routes>
           <Route path="/dashboard" element={<Dashboard pages={pages}/>} />
           <Route path="/ai-chat" element={<AIChatPage/>} />
+          <Route path="/ai-tools" element={<NewAIToolsPage/>} />
+          <Route path="/custom-views" element={<CustomViewsPage/>} />
           {pages.map(p => (
             <Route key={p.path} path={p.path} element={
               <CrudPage title={p.label} apiPath={p.api} columns={p.columns} fields={p.fields} />
             }/>
           ))}
           <Route path="*" element={<Navigate to="/dashboard"/>} />
+          // === Batch 07 Gaps & Frontend Mounts ===
+          <Route path='/cf-agentic-deck-generation' element={<CfAgenticDeckGeneration />} />
+          <Route path='/cf-realtime-collaboration' element={<CfRealtimeCollaboration />} />
+          <Route path='/cf-audience-analysis-adaptation' element={<CfAudienceAnalysisAdaptation />} />
+          <Route path='/cf-data-visualization-recommender' element={<CfDataVisualizationRecommender />} />
+          <Route path='/cf-presentation-delivery-coaching' element={<CfPresentationDeliveryCoaching />} />
+          <Route path='/cf-template-remix-customization' element={<CfTemplateRemixCustomization />} />
+          <Route path='/gap-no-templaterecommend-for-topic' element={<GapNoTemplaterecommendForTopic />} />
+          <Route path='/gap-no-speakernotesexpand-from-outline' element={<GapNoSpeakernotesexpandFromOutline />} />
+          <Route path='/gap-no-designconsistencycheck-fonts-colors' element={<GapNoDesignconsistencycheckFontsColors />} />
+          <Route path='/gap-no-contentqualityfeedback-readability' element={<GapNoContentqualityfeedbackReadability />} />
+          <Route path='/gap-no-audienceaware-adaptation-ai' element={<GapNoAudienceawareAdaptationAi />} />
+          <Route path='/gap-no-realtime-multiuser-collaboration-crdtpres' element={<GapNoRealtimeMultiuserCollaborationCrdtpres />} />
+          <Route path='/gap-no-version-history-undo-store' element={<GapNoVersionHistoryUndoStore />} />
+          <Route path='/gap-no-presenter-mode-timer-notes-view' element={<GapNoPresenterModeTimerNotesView />} />
+          <Route path='/gap-limited-export-depth-pdfvideo-pipeline-shall' element={<GapLimitedExportDepthPdfvideoPipelineShall />} />
+          <Route path='/gap-no-presentation-analytics-viewer-engagement' element={<GapNoPresentationAnalyticsViewerEngagement />} />
+          <Route path='/gap-no-template-marketplace' element={<GapNoTemplateMarketplace />} />
+          <Route path='/gap-no-notifications' element={<GapNoNotifications />} />
+          // === End Batch 07 ===
         </Routes>
       </div>
     </div>
