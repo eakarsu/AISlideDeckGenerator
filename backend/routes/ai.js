@@ -16,7 +16,7 @@ const aiCall = async (system, userMsg, temp = 0.7) => {
   const response = await axios.post(
     `${process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'}/chat/completions`,
     {
-      model: 'anthropic/claude-3-5-sonnet-20241022',
+      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022',
       messages: [{ role: 'system', content: system }, { role: 'user', content: userMsg }],
       temperature: temp, max_tokens: 4096,
     },

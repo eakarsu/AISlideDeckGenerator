@@ -29,6 +29,11 @@ import GapLimitedExportDepthPdfvideoPipelineShall from './pages/GapLimitedExport
 import GapNoPresentationAnalyticsViewerEngagement from './pages/GapNoPresentationAnalyticsViewerEngagement';
 import GapNoTemplateMarketplace from './pages/GapNoTemplateMarketplace';
 import GapNoNotifications from './pages/GapNoNotifications';
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
+
 // === End Batch 07 ===
 
 
@@ -270,6 +275,10 @@ function AppLayout() {
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div className={`main-content ${collapsed ? 'expanded' : ''}`}>
         <Routes>
+        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
           <Route path="/dashboard" element={<Dashboard pages={pages}/>} />
           <Route path="/ai-chat" element={<AIChatPage/>} />
           <Route path="/ai-tools" element={<NewAIToolsPage/>} />
