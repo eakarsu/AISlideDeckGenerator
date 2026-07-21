@@ -1,0 +1,13 @@
+name: workflow-policy
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node --test backend/test/*.test.cjs
+      - run: node --check backend/routes/deckWorkflow.js && node --check backend/server.js
+      - run: bash -n start.sh scripts/migrate.sh
+      - run: grep -q '^BEGIN;' backend/migrations/*.sql && grep -q '^COMMIT;' backend/migrations/*.sql

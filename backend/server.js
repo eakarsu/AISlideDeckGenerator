@@ -13,6 +13,13 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+app.get('/api/health', (req, res) => res.json({ ok: true, service: 'AISlideDeckGenerator', time: new Date().toISOString() }));
+const auth = require('./middleware/auth');
+app.use('/api/deck-workflow', auth, require('./routes/deckWorkflow'));
+app.use(/^\/api\/(?:gap-|ai(?:\/|$)|ai-)/, auth, (req, res) => res.status(503).json({
+  error: 'Generated AI and gap routes are quarantined; use /api/deck-workflow', retryable: false,
+}));
+app.use('/api', auth);
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/presentations', require('./routes/presentations'));
 app.use('/api/slides', require('./routes/slides'));
@@ -75,9 +82,6 @@ app.use('/api/dashboard', require('./middleware/auth'), async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Health endpoint
-app.get('/api/health', (req, res) => res.json({ ok: true, service: 'AISlideDeckGenerator', time: new Date().toISOString() }));
-
 // Custom Views (4 features: 2 VIZ + 2 NON-VIZ) - mounted BEFORE 404/error handlers
 app.use('/api/custom-views', require('./routes/customViews'));
 
@@ -94,4 +98,5 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.BACKEND_PORT || 3001;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+async function start(){const result=await pool.query("SELECT to_regclass('public.deck_workflows') AS workflow_table");if(!result.rows[0].workflow_table)throw new Error('Database migrations are required; run ./scripts/migrate.sh');app.listen(PORT,()=>console.log(`Backend running on port ${PORT}`));}
+start().catch(error=>{console.error('Failed to start server:',error.message);process.exitCode=1;});

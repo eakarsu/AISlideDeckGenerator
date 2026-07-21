@@ -1,74 +1,10 @@
-#!/bin/bash
-set -e
-cd "$(dirname "$0")"
-
-# Load env
-set -a; source .env; set +a
-
-# Kill port function
-kill_port() {
-  local port=$1
-  local pid=$(lsof -ti :$port 2>/dev/null)
-  if [ -n "$pid" ]; then
-    echo "Killing process on port $port (PID: $pid)"
-    kill -9 $pid 2>/dev/null || true
-    sleep 1
-  fi
-}
-
-echo "=== AI Slide Deck Generator ==="
-
-# Kill used ports
-kill_port 3000
-kill_port 3001
-
-# Install backend deps
-echo "Installing backend dependencies..."
-cd backend
-npm install
-cd ..
-
-# Install frontend deps
-echo "Installing frontend dependencies..."
-cd frontend
-npm install
-cd ..
-
-# Setup database
-echo "Setting up database..."
-psql -U $DB_USER -h $DB_HOST -p $DB_PORT -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 || \
-  psql -U $DB_USER -h $DB_HOST -p $DB_PORT -c "CREATE DATABASE $DB_NAME"
-
-# Seed database
-echo "Seeding database..."
-cd backend
-node seeds/seed.js
-cd ..
-
-# Start backend with nodemon
-echo "Starting backend on port $BACKEND_PORT..."
-cd backend
-npx nodemon server.js &
-BACKEND_PID=$!
-cd ..
-
-# Wait for backend
-sleep 2
-
-# Start frontend
-echo "Starting frontend on port $FRONTEND_PORT..."
-cd frontend
-PORT=$FRONTEND_PORT BROWSER=none npm start &
-FRONTEND_PID=$!
-cd ..
-
-echo ""
-echo "=== AI Slide Deck Generator Running ==="
-echo "Frontend: http://localhost:$FRONTEND_PORT"
-echo "Backend:  http://localhost:$BACKEND_PORT"
-echo "Login:    $DEFAULT_EMAIL / $DEFAULT_PASSWORD"
-echo ""
-echo "Press Ctrl+C to stop all services"
-
-trap "kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" INT TERM
-wait
+#!/usr/bin/env bash
+set -euo pipefail
+project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; cd "$project_dir"
+test -f .env || { echo '.env is required (copy .env.example)' >&2; exit 1; }; set -a; source .env; set +a
+: "${DATABASE_URL:?DATABASE_URL is required}"; : "${JWT_SECRET:?JWT_SECRET is required}"; (( ${#JWT_SECRET} >= 32 )) || { echo 'JWT_SECRET must contain at least 32 characters' >&2; exit 1; }
+test -d backend/node_modules && test -d frontend/node_modules || { echo 'Dependencies are missing; install them explicitly before starting' >&2; exit 1; }
+mode="${1:-all}"; pids=(); trap 'for pid in "${pids[@]:-}"; do kill "$pid" 2>/dev/null || true; done' EXIT INT TERM
+if [[ "$mode" == backend || "$mode" == all ]]; then npm --prefix backend start & pids+=("$!"); fi
+if [[ "$mode" == frontend || "$mode" == all ]]; then npm --prefix frontend start & pids+=("$!"); fi
+[[ ${#pids[@]} -gt 0 ]] || { echo 'Usage: ./start.sh [all|backend|frontend]' >&2; exit 2; }; wait

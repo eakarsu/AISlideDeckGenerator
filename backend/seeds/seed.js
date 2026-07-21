@@ -1,4 +1,6 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '..', '.env') });
+if (process.env.ALLOW_DESTRUCTIVE_SEED !== 'true') throw new Error('Set ALLOW_DESTRUCTIVE_SEED=true to run the destructive seed explicitly');
+if (!process.env.SEED_ADMIN_PASSWORD || process.env.SEED_ADMIN_PASSWORD.length < 12) throw new Error('SEED_ADMIN_PASSWORD must contain at least 12 characters');
 const pool = require('../db');
 const bcrypt = require('bcryptjs');
 
@@ -253,9 +255,9 @@ async function seed() {
   `);
 
   // Seed user
-  const hash = await bcrypt.hash(process.env.DEFAULT_PASSWORD || 'admin123', 10);
+  const hash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD, 12);
   await pool.query('INSERT INTO users (email, password, name) VALUES ($1, $2, $3)',
-    [process.env.DEFAULT_EMAIL || 'admin@slidedeck.ai', hash, 'Admin User']);
+    [process.env.SEED_ADMIN_EMAIL || 'admin@slidedeck.invalid', hash, 'Admin User']);
 
   // Seed presentations
   const presentations = [
