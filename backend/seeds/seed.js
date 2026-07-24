@@ -525,21 +525,21 @@ async function seed() {
 
   // Seed collaborators
   const collaborators = [
-    [1, 'sarah@company.com', 'editor', 'edit,comment', 'active', 'admin@slidedeck.ai'],
-    [1, 'mike@company.com', 'viewer', 'view', 'active', 'admin@slidedeck.ai'],
-    [2, 'product@company.com', 'editor', 'edit,comment,share', 'active', 'admin@slidedeck.ai'],
-    [2, 'design@company.com', 'editor', 'edit,comment', 'active', 'admin@slidedeck.ai'],
-    [2, 'ceo@company.com', 'reviewer', 'view,comment', 'active', 'admin@slidedeck.ai'],
-    [3, 'marketing@company.com', 'owner', 'full', 'active', 'admin@slidedeck.ai'],
-    [3, 'content@company.com', 'editor', 'edit,comment', 'active', 'admin@slidedeck.ai'],
-    [4, 'hr@company.com', 'owner', 'full', 'active', 'admin@slidedeck.ai'],
-    [5, 'sales-lead@company.com', 'editor', 'edit,comment', 'active', 'admin@slidedeck.ai'],
-    [5, 'vp-sales@company.com', 'reviewer', 'view,comment', 'active', 'admin@slidedeck.ai'],
-    [6, 'cfo@company.com', 'reviewer', 'view,comment', 'active', 'admin@slidedeck.ai'],
-    [6, 'legal@company.com', 'viewer', 'view', 'active', 'admin@slidedeck.ai'],
-    [7, 'tech-lead@company.com', 'editor', 'edit,comment', 'active', 'admin@slidedeck.ai'],
-    [8, 'success@company.com', 'editor', 'edit,comment', 'active', 'admin@slidedeck.ai'],
-    [10, 'data-team@company.com', 'editor', 'edit,comment,share', 'active', 'admin@slidedeck.ai'],
+    [1, 'sarah@company.com', 'editor', 'edit,comment', 'active', 1],
+    [1, 'mike@company.com', 'viewer', 'view', 'active', 1],
+    [2, 'product@company.com', 'editor', 'edit,comment,share', 'active', 1],
+    [2, 'design@company.com', 'editor', 'edit,comment', 'active', 1],
+    [2, 'ceo@company.com', 'reviewer', 'view,comment', 'active', 1],
+    [3, 'marketing@company.com', 'owner', 'full', 'active', 1],
+    [3, 'content@company.com', 'editor', 'edit,comment', 'active', 1],
+    [4, 'hr@company.com', 'owner', 'full', 'active', 1],
+    [5, 'sales-lead@company.com', 'editor', 'edit,comment', 'active', 1],
+    [5, 'vp-sales@company.com', 'reviewer', 'view,comment', 'active', 1],
+    [6, 'cfo@company.com', 'reviewer', 'view,comment', 'active', 1],
+    [6, 'legal@company.com', 'viewer', 'view', 'active', 1],
+    [7, 'tech-lead@company.com', 'editor', 'edit,comment', 'active', 1],
+    [8, 'success@company.com', 'editor', 'edit,comment', 'active', 1],
+    [10, 'data-team@company.com', 'editor', 'edit,comment,share', 'active', 1],
   ];
   for (const c of collaborators) {
     await pool.query('INSERT INTO collaborators (presentation_id,user_email,role,permissions,status,invited_by) VALUES ($1,$2,$3,$4,$5,$6)', c);
