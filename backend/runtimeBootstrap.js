@@ -20,6 +20,7 @@ async function main() {
       input_data JSONB, result TEXT, created_at TIMESTAMP DEFAULT NOW()
     );
   `);
+  await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) NOT NULL DEFAULT 'viewer'");
   const hash = await bcrypt.hash(password, 10);
   await pool.query(
     `INSERT INTO users (email,password,name,role) VALUES ($1,$2,$3,'admin')
