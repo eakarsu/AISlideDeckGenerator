@@ -40,7 +40,7 @@ export default function Login() {
           </div>
           <button type="submit" className="btn btn-primary login-btn">Sign In</button>
         </form>
-        <span className="login-fill" onClick={fill}>Click to fill demo credentials</span>
+        <span className="login-fill" onClick={fill}>Auto Fill Demo Credentials</span>
       </div>
     </div>
   );
