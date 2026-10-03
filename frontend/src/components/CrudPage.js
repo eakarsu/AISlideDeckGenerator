@@ -15,7 +15,9 @@ export default function CrudPage({ title, apiPath, columns, fields }) {
     try {
       setLoading(true);
       const { data } = await api.get(`/${apiPath}`);
-      setItems(data);
+      const items = Array.isArray(data) ? data : data?.data;
+      if (!Array.isArray(items)) throw new Error('Invalid list response');
+      setItems(items);
     } catch { toast.error('Failed to load data'); }
     finally { setLoading(false); }
   }, [apiPath]);
