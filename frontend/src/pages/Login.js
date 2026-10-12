@@ -8,7 +8,15 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const fill = () => { setEmail(process.env.REACT_APP_DEMO_EMAIL || ''); setPassword(process.env.REACT_APP_DEMO_PASSWORD || ''); };
+  const demoEmail = process.env.REACT_APP_DEMO_EMAIL;
+  const demoPassword = process.env.REACT_APP_DEMO_PASSWORD;
+  const demoAvailable = Boolean(demoEmail && demoPassword);
+  const fill = () => {
+    if (!demoAvailable) return;
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,7 +48,8 @@ export default function Login() {
           </div>
           <button type="submit" className="btn btn-primary login-btn">Sign In</button>
         </form>
-        <span className="login-fill" onClick={fill}>Auto Fill Demo Credentials</span>
+        <button type="button" className="login-fill" onClick={fill} disabled={!demoAvailable}>Fill demo credentials</button>
+        {!demoAvailable && <p role="status">Demo credentials are not configured for this app build. Sign in with an existing account.</p>}
       </div>
     </div>
   );

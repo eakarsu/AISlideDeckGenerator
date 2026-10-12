@@ -1,6 +1,8 @@
+import AIFieldPresets, { completeExample } from '../components/AIFieldPresets';
+import useCancelableAI from '../components/useCancelableAI';
+import ReadableAIReport from "../components/AIResultView";
 import React, { useState } from 'react';
 import api from '../services/api';
-import ReactMarkdown from 'react-markdown';
 import { FiCpu, FiCopy, FiFileText, FiCheckCircle } from 'react-icons/fi';
 
 const TOOLS = [
@@ -22,9 +24,10 @@ const TOOLS = [
     icon: <FiFileText />,
     endpoint: '/ai/speaker-notes-expand',
     fields: [
-      { name: 'outline', label: 'Outline (one bullet per line)', required: true, type: 'textarea' },
-      { name: 'total_minutes', label: 'Total minutes', type: 'number', placeholder: '15' },
-      { name: 'style', label: 'Speaking style', placeholder: 'professional and confident' },
+      { name: 'slide_outline', label: 'Slide outline', required: true, type: 'textarea' },
+      { name: 'slide_title', label: 'Slide title' },
+      { name: 'target_minutes_per_slide', label: 'Minutes for this slide', type: 'number', min: 0.5, step: 0.5 },
+      { name: 'audience', label: 'Audience', placeholder: 'e.g. board members, students, customers' },
     ],
   },
   {
@@ -33,9 +36,8 @@ const TOOLS = [
     icon: <FiCheckCircle />,
     endpoint: '/ai/design-consistency-check',
     fields: [
-      { name: 'presentation_id', label: 'Presentation ID', type: 'number' },
-      { name: 'slides_text', label: 'Slides text (optional, one slide per line)', type: 'textarea' },
-      { name: 'brand_guidelines', label: 'Brand guidelines (optional)', type: 'textarea' },
+      { name: 'slides', label: 'Slides to review', type: 'json', required: true, placeholder: '[{"title":"Example summary","font":"Inter","color":"#2563eb","content":"Illustrative slide content"}]' },
+      { name: 'brand', label: 'Brand guidelines', type: 'json', placeholder: '{"fonts":["Inter"],"colors":["#2563eb"],"tone":"Professional"}' },
     ],
   },
   {
@@ -55,43 +57,28 @@ const TOOLS = [
 export default function NewAIToolsPage() {
   const [tool, setTool] = useState(TOOLS[0]);
   const [form, setForm] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
+  const aiRequest = useCancelableAI();
+  const { loading, error, result, setError, setResult } = aiRequest;
+
+
 
   const updateField = (name, value) => setForm(prev => ({ ...prev, [name]: value }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true); setError(''); setResult(null);
-    try {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    return aiRequest.run(async (options) => {
       const payload = { ...form };
-      // If there's an outline textarea, split into array
-      if (tool.id === 'speaker-notes-expand' && payload.outline) {
-        payload.outline = payload.outline.split('\n').map(s => s.trim()).filter(Boolean);
+      for (const field of tool.fields) {
+        if (field.required && (payload[field.name] === undefined || payload[field.name] === '')) throw new Error(field.label + ' is required.');
+        if (field.type === 'number' && payload[field.name] !== '' && payload[field.name] !== undefined) payload[field.name] = Number(payload[field.name]);
+        if (field.type === 'json' && payload[field.name]) { try { payload[field.name] = typeof payload[field.name] === 'string' ? JSON.parse(payload[field.name]) : payload[field.name]; } catch (_) { throw new Error(field.label + ': enter valid structured data.'); } }
       }
-      if (tool.id === 'design-consistency-check' && payload.slides_text) {
-        payload.slides = payload.slides_text.split('\n').map(s => s.trim()).filter(Boolean);
-      }
-      if (tool.id === 'content-quality-feedback' && payload.slides_text) {
-        payload.slides = payload.slides_text.split('\n').map(s => s.trim()).filter(Boolean);
-        delete payload.slides_text;
-      }
-      const res = await api.post(tool.endpoint, payload);
-      setResult(res.data?.result || res.data);
-    } catch (err) {
-      const status = err.response?.status;
-      const msg = err.response?.data?.error || err.message || 'Request failed';
-      setError(status === 503 ? `${msg} (AI provider not configured)` : msg);
-    }
-    setLoading(false);
+      if (tool.id === 'content-quality-feedback' && payload.slides_text) { payload.slides = payload.slides_text.split('\n').map((line) => line.trim()).filter(Boolean); delete payload.slides_text; }
+      return (await api.post(tool.endpoint, payload, options)).data;
+    });
   };
 
-  const renderResult = (val) => {
-    if (val === null || val === undefined) return null;
-    if (typeof val === 'string') return <ReactMarkdown>{val}</ReactMarkdown>;
-    return <pre style={{ background: 'var(--bg-2,#1f2937)', color: '#e5e7eb', padding: 12, borderRadius: 8, whiteSpace: 'pre-wrap', overflow: 'auto' }}>{JSON.stringify(val, null, 2)}</pre>;
-  };
+  const renderResult = (value) => <ReadableAIReport result={value} title={tool.label} />;
 
   return (
     <div style={{ padding: '24px' }}>
@@ -104,7 +91,7 @@ export default function NewAIToolsPage() {
         {TOOLS.map(t => (
           <button
             key={t.id}
-            onClick={() => { setTool(t); setForm({}); setResult(null); setError(''); }}
+            onClick={() => { aiRequest.cancel(); setTool(t); setForm({}); setResult(null); setError(''); }}
             style={{
               padding: '10px 16px',
               borderRadius: 8,
@@ -123,12 +110,14 @@ export default function NewAIToolsPage() {
       </div>
 
       <form onSubmit={handleSubmit} style={{ background: 'var(--card, #111827)', padding: 20, borderRadius: 12, border: '1px solid var(--border, #374151)' }}>
+        <AIFieldPresets fields={tool.fields} context={tool.label} disabled={loading} onFill={(sample, index) => { setForm(completeExample(tool.fields, sample, index, tool.label, form)); setResult(null); setError(null); }} />
+
         {tool.fields.map(f => (
           <div key={f.name} style={{ marginBottom: 12 }}>
             <label style={{ display: 'block', fontSize: 13, color: '#9ca3af', marginBottom: 4 }}>
               {f.label} {f.required && <span style={{ color: '#f87171' }}>*</span>}
             </label>
-            {f.type === 'textarea' ? (
+            {f.type === 'textarea' || f.type === 'json' ? (
               <textarea
                 rows={5}
                 placeholder={f.placeholder}
@@ -166,16 +155,13 @@ export default function NewAIToolsPage() {
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          {loading ? 'Working...' : 'Run'}
+          {loading ? 'Preparing report…' : 'Generate with OpenRouter'}
         </button>
+        {loading && <button type="button" className="btn btn-secondary" onClick={aiRequest.cancel}>Cancel</button>}
+        {aiRequest.notice && <p className="sr-notice" role="status">{aiRequest.notice}</p>}
       </form>
 
-      {result && (
-        <div style={{ marginTop: 16, background: 'var(--card, #111827)', padding: 20, borderRadius: 12, border: '1px solid var(--border, #374151)' }}>
-          <h3>Result</h3>
-          {renderResult(result)}
-        </div>
-      )}
+      <ReadableAIReport result={result} loading={loading} error={error} title={tool.label} />
     </div>
   );
 }

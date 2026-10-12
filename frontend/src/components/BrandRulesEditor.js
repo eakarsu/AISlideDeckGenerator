@@ -8,7 +8,13 @@ export default function BrandRulesEditor() {
   const [editId, setEditId] = useState(null);
 
   const load = async () => {
-    try { const r = await api.get('/custom-views/brand-rules'); setRules(r.data); }
+    try {
+      const r = await api.get('/custom-views/brand-rules');
+      const items = Array.isArray(r.data) ? r.data : r.data?.data;
+      if (!Array.isArray(items)) throw new Error('Invalid brand rules response');
+      setRules(items);
+      setErr(null);
+    }
     catch (e) { setErr(e.response?.data?.error || e.message); }
   };
   useEffect(() => { load(); }, []);

@@ -1,3 +1,6 @@
+
+import FullAIExamples, { useFullAIExamples } from "../components/FullAIExamples.jsx";
+import AIResultView, { AIResultValue } from '../components/AIResultView';
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import api from '../services/api';
@@ -67,7 +70,7 @@ function SlidePreviewCard({ slide }) {
   if (content) {
     try {
       const parsed = JSON.parse(content);
-      content = parsed.content || parsed.key_bullets?.join('\n• ') || JSON.stringify(parsed);
+      content = parsed.content || parsed;
     } catch (_) {}
   }
   return (
@@ -77,13 +80,15 @@ function SlidePreviewCard({ slide }) {
         <span style={{ color: '#64748b', fontSize: 12 }}>{slide.layout}</span>
       </div>
       <h4 style={{ color: '#e2e8f0', marginBottom: 8 }}>{slide.title}</h4>
-      {content && <p style={{ color: '#94a3b8', fontSize: 13, whiteSpace: 'pre-line' }}>{String(content).substring(0, 300)}{content.length > 300 ? '...' : ''}</p>}
+      {content != null && (typeof content === 'object' ? <AIResultValue value={content} /> : <p style={{ color: '#94a3b8', fontSize: 13, whiteSpace: 'pre-line' }}>{String(content).substring(0, 300)}{String(content).length > 300 ? '...' : ''}</p>)}
       {slide.speaker_notes && <div style={{ marginTop: 8, padding: 8, background: '#0f172a', borderRadius: 4, fontSize: 12, color: '#64748b' }}>Notes: {String(slide.speaker_notes).substring(0, 150)}</div>}
     </div>
   );
 }
 
 export default function AIChatPage() {
+  const fullAIExamples = useFullAIExamples();
+
   const [activeTool, setActiveTool] = useState(tools[0]);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -175,9 +180,9 @@ export default function AIChatPage() {
           pipelineData: data,
         }]);
       } else if (typeof data.result === 'object') {
-        setMessages(prev => [...prev, { role:'assistant', content: JSON.stringify(data.result, null, 2), model:data.model, usage:data.usage }]);
+        setMessages(prev => [...prev, { role:'assistant', content: '', report: data.result, reportTitle: activeTool.name, model:data.model, usage:data.usage }]);
       } else {
-        setMessages(prev => [...prev, { role:'assistant', content: data.result || JSON.stringify(data), model:data.model, usage:data.usage }]);
+        setMessages(prev => [...prev, { role:'assistant', content: data.result ?? '', report: data.result === undefined || (typeof data.result === 'string' && /^[\s]*[\[{]/.test(data.result)) ? (data.result ?? data) : undefined, reportTitle: activeTool.name, model:data.model, usage:data.usage }]);
       }
       setForm({});
     } catch (err) {
@@ -189,7 +194,7 @@ export default function AIChatPage() {
   const handleKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-full-ai-workspace="AIChatPage">
       <div className="page-header">
         <div>
           <h1 className="page-title">AI Assistant</h1>
@@ -209,20 +214,20 @@ export default function AIChatPage() {
 
       <div className="ai-chat-container">
         {activeTool.fields && (
-          <form className="ai-form" onSubmit={sendTool}>
+          <form className="ai-form" onSubmit={sendTool} data-full-ai-workspace="AIChatPage"><FullAIExamples controller={fullAIExamples} />
             <div className="ai-form-row">
               {activeTool.fields.map(f => (
                 <div className="form-group" key={f.name} style={f.type==='textarea'?{gridColumn:'1/-1'}:{}}>
                   <label className="form-label">{f.label}{f.required && ' *'}</label>
                   {f.type === 'textarea' ? (
-                    <textarea className="form-textarea" value={form[f.name]||''} placeholder={f.placeholder} onChange={e=>setForm({...form,[f.name]:e.target.value})} required={f.required} />
+                    <textarea className="form-textarea" value={form[f.name]||''} placeholder={f.placeholder} onChange={e=>setForm({...form,[f.name]:e.target.value})} required={f.required} data-full-ai-field={fullAIExamples.bind({ current: form[f.name]||'', change: e=>setForm({...form,[f.name]:e.target.value}), label: "form[f.name]", manual: false, json: false }, "p1-11040", [(typeof f === 'object' ? f?.key ?? f?.name ?? f?.id ?? '' : f),f.name].join(":"))} />
                   ) : f.type === 'select' ? (
-                    <select className="form-select" value={form[f.name]||''} onChange={e=>setForm({...form,[f.name]:e.target.value})}>
+                    <select className="form-select" value={form[f.name]||''} onChange={e=>setForm({...form,[f.name]:e.target.value})} data-full-ai-field={fullAIExamples.bind({ current: form[f.name]||'', change: e=>setForm({...form,[f.name]:e.target.value}), label: "form[f.name]", manual: false, json: false }, "p1-11277", [(typeof f === 'object' ? f?.key ?? f?.name ?? f?.id ?? '' : f),f.name].join(":"))}>
                       <option value="">Select...</option>
                       {f.options.map(o=><option key={o} value={o}>{o}</option>)}
                     </select>
                   ) : (
-                    <input className="form-input" type={f.type||'text'} value={form[f.name]||''} placeholder={f.placeholder} onChange={e=>setForm({...form,[f.name]:e.target.value})} required={f.required} />
+                    <input className="form-input" type={f.type||'text'} value={form[f.name]||''} placeholder={f.placeholder} onChange={e=>setForm({...form,[f.name]:e.target.value})} required={f.required} data-full-ai-field={fullAIExamples.bind({ current: form[f.name]||'', change: e=>setForm({...form,[f.name]:e.target.value}), label: "form[f.name]", manual: false, json: false }, "p1-11605", [(typeof f === 'object' ? f?.key ?? f?.name ?? f?.id ?? '' : f),f.name].join(":"))} />
                   )}
                 </div>
               ))}
@@ -245,7 +250,7 @@ export default function AIChatPage() {
             <div key={i} className={`chat-message ${m.role}`}>
               <div className="chat-avatar">{m.role === 'user' ? '👤' : '🤖'}</div>
               <div className="chat-content">
-                <ReactMarkdown>{m.content}</ReactMarkdown>
+                {m.report !== undefined ? <AIResultView result={m.report} title={m.reportTitle || 'AI response'} /> : <ReactMarkdown>{String(m.content ?? '')}</ReactMarkdown>}
                 {m.pipelineData && m.pipelineData.slides && (
                   <div style={{ marginTop: 16 }}>
                     <div style={{ color: '#818cf8', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
@@ -305,8 +310,8 @@ export default function AIChatPage() {
         )}
 
         {activeTool.id === 'chat' && (
-          <div className="chat-input-area">
-            <textarea className="chat-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey} placeholder="Ask about presentation design, slide content, storytelling..." rows={1} />
+          <div className="chat-input-area" data-full-ai-workspace="AIChatPage"><FullAIExamples controller={fullAIExamples} disabled={sending} />
+            <textarea className="chat-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey} placeholder="Ask about presentation design, slide content, storytelling..." rows={1} data-full-ai-field={fullAIExamples.bind({ current: input, change: e => setInput(e.target.value), label: "input", manual: false, json: false, sample: '' }, "p1-15968", undefined)} />
             <button className="btn btn-primary chat-send" onClick={sendChat} disabled={sending || !input.trim()}>
               <FiSend/>
             </button>

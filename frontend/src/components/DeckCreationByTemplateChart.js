@@ -7,7 +7,10 @@ export default function DeckCreationByTemplateChart() {
 
   useEffect(() => {
     api.get('/custom-views/deck-creation-by-template')
-      .then(r => setData(r.data))
+      .then(r => {
+        if (!Array.isArray(r.data?.labels) || !Array.isArray(r.data?.values)) throw new Error('Invalid deck chart response');
+        setData(r.data);
+      })
       .catch(e => setErr(e.response?.data?.error || e.message));
   }, []);
 

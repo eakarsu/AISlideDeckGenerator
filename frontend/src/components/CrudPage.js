@@ -1,3 +1,5 @@
+import RecordDialog from './RecordDialog';
+import { AIResultValue } from './AIResultView';
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -68,7 +70,7 @@ export default function CrudPage({ title, apiPath, columns, fields }) {
   const formatCell = (val) => {
     if (val === null || val === undefined) return '-';
     if (typeof val === 'boolean') return val ? 'Yes' : 'No';
-    if (typeof val === 'object') return JSON.stringify(val).substring(0, 60) + '...';
+    if (typeof val === 'object') return <AIResultValue value={val} />;
     const s = String(val);
     if (['active','completed','ready','true'].includes(s.toLowerCase())) return <span className="badge badge-active">{s}</span>;
     if (['draft','pending'].includes(s.toLowerCase())) return <span className="badge badge-draft">{s}</span>;
@@ -100,7 +102,7 @@ export default function CrudPage({ title, apiPath, columns, fields }) {
             <thead><tr><th>#</th>{columns.map(c => <th key={c}>{c.replace(/_/g,' ')}</th>)}</tr></thead>
             <tbody>
               {items.map(item => (
-                <tr key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => setSelected(selected?.id === item.id ? null : item)}>
+                <tr key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => setSelected(selected?.id === item.id ? null : item)} tabIndex={0} onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) { event.preventDefault(); (() => setSelected(selected?.id === item.id ? null : item))(event); } }}>
                   <td>{item.id}</td>
                   {columns.map(c => <td key={c}>{formatCell(item[c])}</td>)}
                 </tr>
@@ -111,7 +113,7 @@ export default function CrudPage({ title, apiPath, columns, fields }) {
       )}
 
       {selected && (
-        <div className="detail-panel">
+        <RecordDialog title={title} onClose={() => setSelected(null)}><div className="detail-panel">
           <div className="detail-header">
             <h2 className="detail-title">{selected.name || selected.title || selected.key || `#${selected.id}`}</h2>
             <button className="detail-close" onClick={() => setSelected(null)}><FiX/></button>
@@ -124,11 +126,11 @@ export default function CrudPage({ title, apiPath, columns, fields }) {
             <div className="detail-field" key={k}>
               <div className="detail-label">{k.replace(/_/g,' ')}</div>
               <div className={typeof v === 'object' && v !== null ? 'detail-json' : 'detail-value'}>
-                {v === null || v === undefined ? '-' : typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v)}
+                {v === null || v === undefined ? '-' : typeof v === 'object' ? <AIResultValue value={v} /> : /(?:ai|result|response|output|content)/i.test(k) && typeof v === 'string' && /^[\s]*[\[{]/.test(v) ? <AIResultValue value={v} /> : String(v)}
               </div>
             </div>
           ))}
-        </div>
+        </div></RecordDialog>
       )}
 
       {showModal && (

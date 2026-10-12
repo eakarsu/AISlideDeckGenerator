@@ -10,6 +10,7 @@ export default function SlideLibraryExport() {
     setLoading(true); setErr(null);
     try {
       const r = await api.get('/custom-views/slide-library-export', { params: { format: 'pdf' } });
+      if (!Array.isArray(r.data?.pages)) throw new Error('Invalid slide library response');
       setDoc(r.data);
     } catch (e) {
       setErr(e.response?.data?.error || e.message);
@@ -41,12 +42,11 @@ export default function SlideLibraryExport() {
           <div><strong>Format:</strong> {doc.format}</div>
           <div><strong>Generated:</strong> {doc.generated_at}</div>
           <div style={{ marginTop: 8, maxHeight: 240, overflow: 'auto', background: '#f9fafb', padding: 8, borderRadius: 6 }}>
-            {doc.pages.slice(0, 10).map(p => (
+            {doc.pages.map(p => (
               <div key={p.page} style={{ fontSize: 12, borderBottom: '1px dashed #e5e7eb', padding: '4px 0' }}>
                 <strong>Page {p.page}:</strong> {p.title} <span style={{ color: '#6b7280' }}>({p.presentation || 'unassigned'})</span>
               </div>
             ))}
-            {doc.pages.length > 10 && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>+{doc.pages.length - 10} more pages...</div>}
           </div>
         </div>
       )}

@@ -7,7 +7,10 @@ export default function TemplateUsageHeatmap() {
 
   useEffect(() => {
     api.get('/custom-views/template-usage-heatmap')
-      .then(r => setData(r.data))
+      .then(r => {
+        if (!Array.isArray(r.data?.templates) || !Array.isArray(r.data?.teams) || !Array.isArray(r.data?.matrix) || !r.data.matrix.every(Array.isArray)) throw new Error('Invalid template heatmap response');
+        setData(r.data);
+      })
       .catch(e => setErr(e.response?.data?.error || e.message));
   }, []);
 

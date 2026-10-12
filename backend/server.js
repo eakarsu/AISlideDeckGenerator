@@ -16,6 +16,14 @@ app.use('/api/auth', require('./routes/auth'));
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'AISlideDeckGenerator', time: new Date().toISOString() }));
 const auth = require('./middleware/auth');
 app.use('/api/deck-workflow', auth, require('./routes/deckWorkflow'));
+
+// Advisory AI reports only; native execution and approval routes stay unchanged.
+const aiWorkspaceSupport = require("./aiWorkspaceAdapters.cjs");
+const aiWorkspaceDatabase = require("./db.js");
+app.use('/api/report-workspace', require("./aiWorkspace.cjs").createAIWorkspaceRouter({
+  pool: aiWorkspaceDatabase, authenticateToken: aiWorkspaceSupport.verifiedActorAuth(require("./middleware/auth.js")),
+  aiRateLimiter: aiWorkspaceSupport.createWorkspaceLimiter(), features: require("./aiWorkspaceFeatures.json"),
+}));
 app.use(/^\/api\/(?:gap-|ai-)/, auth, (req, res) => res.status(503).json({
   error: 'Generated AI and gap routes are quarantined; use /api/deck-workflow', retryable: false,
 }));

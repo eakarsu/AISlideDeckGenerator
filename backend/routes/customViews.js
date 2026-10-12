@@ -67,7 +67,7 @@ router.get('/deck-creation-by-template', auth, async (req, res) => {
     // Fallback: if all zeros, distribute popularity as a meaningful series
     const total = rows.reduce((s, r) => s + (r.deck_count || 0), 0);
     if (total === 0) {
-      const fb = await pool.query(`SELECT id, name AS template, category, COALESCE(popularity,0)::int AS deck_count FROM slide_templates ORDER BY popularity DESC NULLS LAST LIMIT 12`);
+      const fb = await pool.query(`SELECT id, name AS template, category, COALESCE(popularity,0)::int AS deck_count FROM slide_templates ORDER BY popularity DESC NULLS LAST LIMIT 25`);
       rows = fb.rows.map(r => ({ ...r, deck_count: Math.max(1, Math.round((r.deck_count || 1) / 10)) }));
     }
     res.json({
@@ -100,7 +100,7 @@ router.get('/template-usage-heatmap', auth, async (req, res) => {
     const totalUses = cells.reduce((s, r) => s + r.uses, 0);
     if (totalUses === 0) {
       // Synthesize a meaningful heatmap from template popularity x existing audiences
-      const t = await pool.query(`SELECT name, COALESCE(popularity,1)::int AS pop FROM slide_templates ORDER BY popularity DESC NULLS LAST LIMIT 8`);
+      const t = await pool.query(`SELECT name, COALESCE(popularity,1)::int AS pop FROM slide_templates ORDER BY popularity DESC NULLS LAST LIMIT 25`);
       const a = await pool.query(`SELECT DISTINCT COALESCE(NULLIF(TRIM(audience), ''), 'general') AS team FROM presentations LIMIT 6`);
       const teams = a.rows.length ? a.rows.map(r => r.team) : ['design', 'sales', 'product', 'exec'];
       cells = [];
