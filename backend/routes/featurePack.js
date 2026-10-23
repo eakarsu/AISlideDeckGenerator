@@ -1,0 +1,13 @@
+const express=require('express'); const logic=require('../domain/featurePackLogic'); const router=express.Router();
+router.use((req,res,next)=>{ if(!req.user) return res.status(401).json({error:'Authentication required'}); next(); });
+router.get('/tasks',(req,res)=>res.json({data:logic.listTasks(logic.getTasks(),req.query)}));
+router.get('/search',(req,res)=>res.json({data:logic.searchRecords(logic.getTasks(),req.query)}));
+router.post('/tasks',(req,res)=>{ try{ res.status(201).json(logic.createTask(req.body||{},req.user.id||req.user.email||'user')); }catch(e){ res.status(e.status||400).json({error:e.message}); } });
+router.put('/tasks/:id',(req,res)=>{ const t=logic.updateTask(req.params.id,req.body||{}); return t?res.json(t):res.status(404).json({error:'Task not found'}); });
+router.patch('/tasks/:id',(req,res)=>{ const t=logic.updateTask(req.params.id,req.body||{}); return t?res.json(t):res.status(404).json({error:'Task not found'}); });
+router.get('/export',(req,res)=>{ const rows=logic.listTasks(logic.getTasks(),req.query); if(String(req.query.format||'json').toLowerCase()==='csv'){ res.setHeader('Content-Type','text/csv'); res.setHeader('Content-Disposition','attachment; filename="feature-pack.csv"'); return res.send(logic.toCSV(rows)); } return res.json(logic.toJSONExport(rows)); });
+router.get('/sections/:id',(req,res)=>{ const t=logic.getTasks().find(x=>x.id===Number(req.params.id)); return t?res.json({sections:logic.buildSections(t)}):res.status(404).json({error:'Task not found'}); });
+router.get('/ai/slide-readability',(req,res)=>res.json(logic.slideReadability(logic.getTasks())));
+router.get('/ai/outline-expansion',(req,res)=>res.json(logic.outlineExpansion(logic.getTasks())));
+router.get('/ai/design-consistency',(req,res)=>res.json(logic.designConsistency(logic.getTasks())));
+module.exports=router;

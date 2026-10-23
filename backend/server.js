@@ -16,6 +16,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'AISlideDeckGenerator', time: new Date().toISOString() }));
 const auth = require('./middleware/auth');
 app.use('/api/deck-workflow', auth, require('./routes/deckWorkflow'));
+app.use('/api/feature-pack', auth, require('./routes/featurePack'));
 
 // Advisory AI reports only; native execution and approval routes stay unchanged.
 const aiWorkspaceSupport = require("./aiWorkspaceAdapters.cjs");

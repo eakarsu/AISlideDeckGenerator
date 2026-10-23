@@ -10,6 +10,7 @@ import CrudPage from './components/CrudPage';
 import AIChatPage from './pages/AIChatPage';
 import NewAIToolsPage from './pages/NewAIToolsPage';
 import CustomViewsPage from './pages/CustomViewsPage';
+import FeaturePackPage from './pages/FeaturePackPage';
 
 // === Batch 07 Gaps & Frontend Mounts ===
 import CfAgenticDeckGeneration from './pages/CfAgenticDeckGeneration';
@@ -284,6 +285,7 @@ function AppLayout() {
           <Route path="/ai-chat" element={<AIChatPage/>} />
           <Route path="/ai-tools" element={<NewAIToolsPage/>} />
           <Route path="/custom-views" element={<CustomViewsPage/>} />
+          <Route path="/feature-pack" element={<FeaturePackPage/>} />
           {pages.map(p => (
             <Route key={p.path} path={p.path} element={
               <CrudPage title={p.label} apiPath={p.api} columns={p.columns} fields={p.fields} />
